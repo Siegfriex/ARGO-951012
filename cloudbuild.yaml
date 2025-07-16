@@ -1,0 +1,12 @@
+steps:
+  # 1. Cloud Build 환경 정보 출력 (가장 간결한 테스트)
+  - name: 'gcr.io/cloud-builders/gcloud'
+    id: 'Show Environment Info'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        echo "Project ID: $$PROJECT_ID"
+        echo "Build ID: $$BUILD_ID"
+        echo "Branch Name: $$BRANCH_NAME"
+        echo "Commit SHA: $$COMMIT_SHA"
