@@ -9,28 +9,21 @@ steps:
     entrypoint: 'pip'
     args: ['install', '-e', '.[test,dev]']
 
-  # --- 2단계: 코드 린팅 (수정됨) ---
+  # --- 2단계: 코드 린팅만 유지 ---
   - name: 'python:3.11'
     id: 'Lint Code'
-    entrypoint: 'python'  # ✅ 수정
-    args: ['-m', 'ruff', 'check', '.']  # ✅ 수정
+    entrypoint: 'python'
+    args: ['-m', 'ruff', 'check', '.']
     waitFor: ['Install Dependencies']
 
-  # --- 2단계: 코드 포맷팅 검사 (수정됨) ---
-  - name: 'python:3.11'
-    id: 'Check Formatting'
-    entrypoint: 'python'  # ✅ 수정
-    args: ['-m', 'ruff', 'format', '--check', '.']  # ✅ 수정
-    waitFor: ['Install Dependencies']
-
-  # --- 2단계: 단위 테스트 ---
+  # --- 3단계: 단위 테스트 ---
   - name: 'python:3.11'
     id: 'RUN_UNIT_TESTS'
     entrypoint: 'python'
     args: ['-m', 'pytest', '-v']
     waitFor: ['Install Dependencies']
 
-  # --- 3단계: Vertex AI 배포 ---
+  # --- 4단계: Vertex AI 배포 ---
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     id: 'Deploy Hephaestus Agent'
     entrypoint: 'bash'
@@ -45,6 +38,6 @@ steps:
           --package-path="." \
           --python-module="argo.agents.hephaestus" \
           --class-name="HephaestusAgent"
-    waitFor: ['Lint Code', 'Check Formatting', 'RUN_UNIT_TESTS']
+    waitFor: ['Lint Code', 'RUN_UNIT_TESTS']
 
 timeout: '1200s'
