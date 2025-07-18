@@ -4,24 +4,53 @@ options:
   logging: CLOUD_LOGGING_ONLY
 
 steps:
-  # 1. 연결 성공을 증명하기 위한 가장 간단하고 명확한 테스트
-  - name: 'gcr.io/cloud-builders/gcloud'
-    id: 'VERIFY_CONNECTION_AND_PERMISSIONS'
+  # --- 1단계: 의존성 설치 ---
+  - name: 'python:3.11'
+    id: 'Install Dependencies'
+    entrypoint: 'pip'
+    args: ['install', '-e', '.[test,dev]']
+
+  # --- 2단계 (병렬): 코드 린팅 ---
+  # Ruff를 사용하여 코드에서 잠재적인 오류나 안티 패턴을 검사합니다.
+  - name: 'python:3.11'
+    id: 'Lint Code'
+    entrypoint: 'ruff'
+    args: ['check', '.']
+    waitFor: ['Install Dependencies']
+
+  # --- 2단계 (병렬): 코드 포맷팅 검사 ---
+  # Ruff를 사용하여 모든 코드가 일관된 스타일을 따르는지 확인합니다.
+  - name: 'python:3.11'
+    id: 'Check Formatting'
+    entrypoint: 'ruff'
+    args: ['format', '--check', '.']
+    waitFor: ['Install Dependencies']
+
+  # --- 2단계 (병렬): 단위 테스트 ---
+  - name: 'python:3.11'
+    id: 'RUN_UNIT_TESTS'
+    entrypoint: 'python'
+    args: ['-m', 'pytest', '-v']
+    waitFor: ['Install Dependencies']
+
+  # --- 3단계: 실전 배치 (Deploy to Vertex AI) ---
+  # 이 단계는 모든 이전 단계가 성공했을 때만 실행된다.
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'Deploy Hephaestus Agent'
     entrypoint: 'bash'
     args:
       - '-c'
       - |
-        echo "================================================================"
-        echo "               OPERATION GENESIS: PRE-FLIGHT CHECK"
-        echo "================================================================"
-        echo "STATUS: SUCCESS"
-        echo "INFO: Cloud Build has successfully accessed the repository."
-        echo "----------------------------------------------------------------"
-        echo "Project ID:         $$PROJECT_ID"
-        echo "Trigger Name:       $TRIGGER_NAME"
-        echo "Repository:         $REPO_FULL_NAME"
-        echo "Branch:             $BRANCH_NAME"
-        echo "Commit SHA:         $SHORT_SHA"
-        echo "----------------------------------------------------------------"
-        echo "VERDICT: All systems are nominal. The CI/CD pipeline is active."
-        echo "================================================================"
+        echo "All checks passed. Deploying Hephaestus-Alpha to Vertex AI Reasoning Engine..."
+        gcloud beta ai reasoning-engines create \
+          --display-name="hephaestus-alpha" \
+          --location="us-central1" \
+          --project="$$PROJECT_ID" \
+          --package-path="." \
+          --python-module="argo.agents.hephaestus" \
+          --class-name="HephaestusAgent"
+    # 모든 검사 단계가 성공해야만 이 단계가 실행되도록 설정
+    waitFor: ['Lint Code', 'Check Formatting', 'RUN_UNIT_TESTS']
+
+# 빌드 타임아웃 설정 (선택 사항)
+timeout: '1200s'

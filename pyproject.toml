@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "argo"
+version = "0.1.0"
+description = "Project ARGO - Self-correcting design ecosystem."
+dependencies = [
+    "pydantic",
+    "pytz",
+    "python-dotenv",
+    "google-cloud-aiplatform[reasoning_engine,langchain]",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest",
+    "pytest-mock",
+]
+dev = [
+    "ruff",
+]
+
+[tool.setuptools]
+package_dir = {"" = "src"}
+packages = ["argo"]
