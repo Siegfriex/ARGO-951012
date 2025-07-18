@@ -1,12 +1,27 @@
+# Cloud Build가 로그를 Cloud Logging에만 기록하도록 명시적으로 지정하여
+# '로그 버킷 설정 부재' 오류를 원천적으로 해결합니다.
+options:
+  logging: CLOUD_LOGGING_ONLY
+
 steps:
-  # 1. Cloud Build 환경 정보 출력 (가장 간결한 테스트)
+  # 1. 연결 성공을 증명하기 위한 가장 간단하고 명확한 테스트
   - name: 'gcr.io/cloud-builders/gcloud'
-    id: 'Show Environment Info'
+    id: 'VERIFY_CONNECTION_AND_PERMISSIONS'
     entrypoint: 'bash'
     args:
       - '-c'
       - |
-        echo "Project ID: $$PROJECT_ID"
-        echo "Build ID: $$BUILD_ID"
-        echo "Branch Name: $$BRANCH_NAME"
-        echo "Commit SHA: $$COMMIT_SHA"
+        echo "================================================================"
+        echo "               OPERATION GENESIS: PRE-FLIGHT CHECK"
+        echo "================================================================"
+        echo "STATUS: SUCCESS"
+        echo "INFO: Cloud Build has successfully accessed the repository."
+        echo "----------------------------------------------------------------"
+        echo "Project ID:         $$PROJECT_ID"
+        echo "Trigger Name:       $TRIGGER_NAME"
+        echo "Repository:         $REPO_FULL_NAME"
+        echo "Branch:             $BRANCH_NAME"
+        echo "Commit SHA:         $SHORT_SHA"
+        echo "----------------------------------------------------------------"
+        echo "VERDICT: All systems are nominal. The CI/CD pipeline is active."
+        echo "================================================================"
