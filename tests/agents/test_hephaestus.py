@@ -15,12 +15,12 @@ from argo.agents import hephaestus
 
 
 @patch("argo.agents.hephaestus.load_dotenv")
-def test_initialize_hephaestus_fails_without_env_vars(mock_load_dotenv, capsys):
+def test_initialize_hephaestus_fails_without_env_vars(mock_load_dotenv_unused, capsys):
     """
     Tests that agent initialization fails gracefully
     if environment variables are not set.
     """
-    # Act
+    # Act - The mock is active, but we don't need to use its reference.
     agent = hephaestus.initialize_hephaestus()
 
     # Assert
