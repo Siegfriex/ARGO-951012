@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "argo-v2-agent"
+version = "0.1.0"
+authors = [
+  { name="NEO_GOD", email="6siegfriex@argo.ai.kr" },
+]
+description = "The core agent ecosystem for Project ARGO V2.0"
+readme = "README.md"
+requires-python = ">=3.11"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "pytz",
+    "pydantic",
+    "google-cloud-aiplatform[reasoning_engine,langchain]",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest",
+    "pytest-mock"
+]
+dev = [
+    "ruff",
+    "pylint"
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
