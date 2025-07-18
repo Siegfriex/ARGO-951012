@@ -32,6 +32,6 @@ dev = [
     "pylint"
 ]
 
-# --- [중요] 올바른 패키지 탐색 설정 ---
-[tool.setuptools.packages.find]
-where = ["src"]  # 소스 코드가 'src' 디렉토리 안에 있음을 명시
+[tool.setuptools]
+package_dir = {"" = "src"}
+packages = ["argo"]
