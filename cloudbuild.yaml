@@ -1,26 +1,50 @@
-# 현재 의도를 살리되 문제점 해결
+# Cloud Build가 로그를 Cloud Logging에만 기록하도록 명시
 options:
   logging: CLOUD_LOGGING_ONLY
 
 steps:
-  # --- 1단계: 군수물자 보급 ---
+  # --- 1단계: 의존성 설치 ---
   - name: 'python:3.11'
     id: 'Install Dependencies'
     entrypoint: 'pip'
     args: ['install', '-e', '.[test,dev]']
 
-  # --- 2단계: 코드 품질 검사 (개선됨) ---
+  # --- 2단계: 코드 린팅 (수정됨) ---
   - name: 'python:3.11'
     id: 'Lint Code'
-    entrypoint: 'ruff'
-    args: ['check', '.']  # ✅ 전체 프로젝트 검사
+    entrypoint: 'python'  # ✅ 수정
+    args: ['-m', 'ruff', 'check', '.']  # ✅ 수정
     waitFor: ['Install Dependencies']
 
-  # --- 3단계: 단위 테스트 ---
+  # --- 2단계: 코드 포맷팅 검사 (수정됨) ---
   - name: 'python:3.11'
-    id: 'Run Unit Tests'
+    id: 'Check Formatting'
+    entrypoint: 'python'  # ✅ 수정
+    args: ['-m', 'ruff', 'format', '--check', '.']  # ✅ 수정
+    waitFor: ['Install Dependencies']
+
+  # --- 2단계: 단위 테스트 ---
+  - name: 'python:3.11'
+    id: 'RUN_UNIT_TESTS'
     entrypoint: 'python'
-    args: ['-m', 'pytest', '-v']  # ✅ verbose 출력 추가
-    waitFor: ['Lint Code']  # ✅ 순차 실행 유지
+    args: ['-m', 'pytest', '-v']
+    waitFor: ['Install Dependencies']
+
+  # --- 3단계: Vertex AI 배포 ---
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'Deploy Hephaestus Agent'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        echo "All checks passed. Deploying Hephaestus-Alpha to Vertex AI Reasoning Engine..."
+        gcloud beta ai reasoning-engines create \
+          --display-name="hephaestus-alpha" \
+          --location="us-central1" \
+          --project="$$PROJECT_ID" \
+          --package-path="." \
+          --python-module="argo.agents.hephaestus" \
+          --class-name="HephaestusAgent"
+    waitFor: ['Lint Code', 'Check Formatting', 'RUN_UNIT_TESTS']
 
 timeout: '1200s'
