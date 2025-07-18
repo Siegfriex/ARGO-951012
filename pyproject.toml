@@ -3,25 +3,35 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "argo"
+name = "argo-v2-agent"
 version = "0.1.0"
-description = "Project ARGO - Self-correcting design ecosystem."
+authors = [
+  { name="NEO_GOD", email="6siegfriex@argo.ai.kr" },
+]
+description = "The core agent ecosystem for Project ARGO V2.0"
+readme = "README.md"
+requires-python = ">=3.11"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
 dependencies = [
-    "pydantic",
     "pytz",
-    "python-dotenv",
+    "pydantic",
     "google-cloud-aiplatform[reasoning_engine,langchain]",
 ]
 
 [project.optional-dependencies]
 test = [
     "pytest",
-    "pytest-mock",
+    "pytest-mock"
 ]
 dev = [
     "ruff",
+    "pylint"
 ]
 
-[tool.setuptools]
-package_dir = {"" = "src"}
-packages = ["argo"]
+# --- [중요] 올바른 패키지 탐색 설정 ---
+[tool.setuptools.packages.find]
+where = ["src"]  # 소스 코드가 'src' 디렉토리 안에 있음을 명시
